@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SocialWave</title>
+  <link rel="stylesheet" href="main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="background"></div> <!-- Dynamic gradient background -->
+  
+  <div class="page-layout">
+    <!-- Sidebar with toggle button -->
+    <div class="sidebar" id="sidebar">
+      <button class="toggle-btn" id="toggleSidebar">
+        <span id="toggleIcon">❮</span>
+      </button>
+      
+      <div class="sidebar-inner">
+        <div class="sidebar-header">
+          <h2><span class="sidebar-icon">🌊</span><span class="sidebar-text">SocialWave</span></h2>
+        </div>
+        
+        <div class="sidebar-user">
+          <h3><span class="sidebar-icon">👋</span><span class="sidebar-text">Hi, <span id="username">User</span>!</span></h3>
+        </div>
+        
+        <div class="sidebar-nav">
+          <div class="sidebar-nav-item active" data-page="predict">
+            <span class="sidebar-icon">📊</span>
+            <span class="sidebar-text">Predict Engagement</span>
+          </div>
+          <div class="sidebar-nav-item" data-page="saved">
+            <span class="sidebar-icon">📁</span>
+            <span class="sidebar-text">View Saved Posts</span>
+          </div>
+        </div>
+        
+        <div class="sidebar-footer">
+          <button class="logout-btn" id="logoutBtn">
+            <span class="sidebar-icon">🚪</span>
+            <span class="sidebar-text">Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="content-area" id="contentArea">
+      <header class="header">
+        <div class="container">
+          <h1>SocialWave</h1>
+          <p>Elevate your social media presence!</p>
+        </div>
+      </header>
+
+      <main class="main">
+        <div class="container">
+          <!-- Predict Engagement Page (Default) -->
+          <div class="page-content" id="predictPage">
+            <div class="card">
+              <h2>Predict Your Instagram Engagement</h2>
+              
+              <form id="uploadForm">
+                <!-- Instagram ID Input with Validate Button -->
+                <div class="form-group instagram-input-container">
+                  <label for="instagramId">Instagram Username:</label>
+                  <div class="input-with-button">
+                    <input type="text" id="instagramId" placeholder="@yourusername" required>
+                    <button type="button" id="validateUsername" class="btn-secondary">Validate</button>
+                  </div>
+                  <div id="validationResult" class="validation-result"></div>
+                </div>
+                
+                <!-- Image Upload and Preview -->
+                <div class="form-group">
+                  <label for="image">Upload Image:</label>
+                  <input type="file" id="image" accept="image/*" required>
+                  <div id="imagePreview" class="image-preview"></div>
+                </div>
+
+                <!-- Caption Section -->
+                <div class="form-group">
+                  <div class="tab-container">
+                    <div class="tabs">
+                      <button type="button" class="tab-btn active" data-tab="write">Your caption and hashtags</button>
+                      <button type="button" class="tab-btn" data-tab="generate">Need help? Get suggestions!</button>
+                    </div>
+                    
+                    <div class="tab-content">
+                      <!-- Tab 1: Write Your Own Caption -->
+                      <div class="tab-pane active" id="writeTab">
+                        <label for="captionTab">Caption:</label>
+                        <textarea id="caption" placeholder="Write your caption here..." rows="3"></textarea>
+                        <label for="hashtags">Hashtags:</label>
+                        <input type="text" id="hashtags" placeholder="Enter your hashtags here...(e.g., #socialmedia #instagram)">
+                      </div>
+                      
+                      <!-- Tab 2: Generate Caption -->
+                      <div class="tab-pane" id="generateTab">
+                        <div class="caption-options">
+                          <button type="button" id="generateFromImage" class="btn-secondary">Generate from Image</button>
+                          <button type="button" id="generateFromPrompt" class="btn-secondary">Generate from Prompt</button>
+                        </div>
+                        <div class="caption-prompt-container">
+                          <input type="text" id="captionPrompt" placeholder="Enter your caption and hashtag generation prompt here" class="hidden">
+                          <a href="#" id="generateLink" class="hidden">Generate!</a>
+                        </div>
+                        <div id="generatedCaptionContainer" class="hidden">
+                          <h4>Generated Caption:</h4>
+                          <div id="generatedCaption" class="generated-caption"></div>
+                          <button type="button" id="useThisCaption" class="btn-secondary">Use This Caption</button>
+                        </div>
+                        
+                        <!-- Added Generated Hashtags Section -->
+                        <div id="generatedHashtagsContainer" class="hidden">
+                          <h4>Generated Hashtags:</h4>
+                          <div id="generatedHashtags" class="generated-hashtags"></div>
+                          <button type="button" id="useTheseHashtags" class="btn-secondary">Use These Hashtags</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn">Predict Engagement Rate</button>
+              </form>
+
+              <!-- Loading Spinner -->
+              <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Processing your request...</p>
+              </div>
+
+              <!-- Result Section -->
+              <div id="result" class="result">
+                <h3>Predicted Engagement Rate</h3>
+                <p class="engagement-rate"><span id="engagementRate">0</span>%</p>
+                <h4 id="engagement-category"></h4>
+                <div class="engagement-feedback">
+                  <div id="feedbackText"></div>
+                  <div id="recommendationText"></div>
+                </div>
+                <div class="save-analysis-container">
+                  <button id="saveAnalysisBtn" class="btn">Save Analysis</button>
+                  <div id="saveStatus" class="save-status"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Saved Posts Page (Hidden by default) -->
+<div class="page-content hidden" id="savedPage">
+  <div class="card">
+    <h2>Your Saved Posts</h2>
+    <div id="savedPostsContainer" class="saved-posts-container">
+      <!-- Posts will be dynamically inserted here via JavaScript -->
+    </div>
+  </div>
+</div>
+
+
+      </main>
+    </div>
+  </div>
+  <footer class="footer">
+      <p style="align-items: center; padding-bottom: 10%;">&copy; 2025 SocialWave. All rights reserved.</p>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

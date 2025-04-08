@@ -34,10 +34,10 @@ CORS(app,
      allow_headers=["Content-Type", "X-Requested-With", "Authorization"])
 
 # Configure Google AI
-API_KEY = "AIzaSyDCBrSNbtzZ9OxKyvpn2bcKOP62cjRx15o"
+API_KEY = "GEMINI-API-KEY"
 genai.configure(api_key=API_KEY)
 
-APIFY_TOKEN = 'apify_api_yw65h89DLM29VuQX4zaZOGgQEUVUM90vExp8'
+APIFY_TOKEN = 'APIFY-API-KEY'
 
 @app.route('/test', methods=['GET'])
 def test_connection():

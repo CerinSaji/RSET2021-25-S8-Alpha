@@ -10,7 +10,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // === MongoDB Connection ===
-mongoose.connect("mongodb+srv://dbcerin:dbcerin123@cluster0.ua84d.mongodb.net/socialwave_db")
+mongoose.connect("mongodb-connection")
     .then(() => console.log("✅ Connected to MongoDB Atlas"))
     .catch(err => console.error("❌ MongoDB Connection Error:", err));
 

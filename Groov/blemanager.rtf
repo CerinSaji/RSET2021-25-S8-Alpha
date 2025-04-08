@@ -1,0 +1,360 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2821
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 Menlo-Bold;\f1\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red252\green95\blue163;\red31\green31\blue36;\red255\green255\blue255;
+\red93\green216\blue255;\red208\green168\blue255;\red208\green168\blue255;\red65\green161\blue192;\red252\green106\blue93;
+\red103\green183\blue164;\red161\green103\blue230;\red208\green191\blue105;\red161\green103\blue230;\red103\green183\blue164;
+\red108\green121\blue134;\red146\green161\blue177;}
+{\*\expandedcolortbl;;\csgenericrgb\c98839\c37355\c63833;\csgenericrgb\c12054\c12284\c14131;\csgenericrgb\c100000\c100000\c100000\c85000;
+\csgenericrgb\c36295\c84643\c99897;\csgenericrgb\c81569\c65882\c100000;\csgenericrgb\c81681\c65692\c99927;\csgenericrgb\c25490\c63137\c75294;\csgenericrgb\c98912\c41558\c36568;
+\csgenericrgb\c40538\c71705\c64209;\csgenericrgb\c63232\c40219\c90115;\csgenericrgb\c81498\c74939\c41233;\csgenericrgb\c63137\c40392\c90196;\csgenericrgb\c40392\c71765\c64314;
+\csgenericrgb\c42394\c47462\c52518;\csgenericrgb\c57255\c63137\c69412;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab593
+\pard\tx593\pardeftab593\partightenfactor0
+
+\f0\b\fs24 \cf2 \cb3 import
+\f1\b0 \cf4  Foundation\
+
+\f0\b \cf2 import
+\f1\b0 \cf4  CoreBluetooth\
+
+\f0\b \cf2 import
+\f1\b0 \cf4  AVFoundation\
+\
+
+\f0\b \cf2 class
+\f1\b0 \cf4  \cf5 BluetoothManager\cf4 : \cf6 NSObject\cf4 , \cf7 ObservableObject\cf4 , \cf6 CBCentralManagerDelegate\cf4 , \cf6 CBPeripheralDelegate\cf4  \{\
+    \cf7 @Published\cf4  
+\f0\b \cf2 var
+\f1\b0 \cf4  \cf8 discoveredDevices\cf4 : [\cf6 CBPeripheral\cf4 ] = []\
+    \cf7 @Published\cf4  
+\f0\b \cf2 var
+\f1\b0 \cf4  \cf8 connectedDevices\cf4 : [\cf6 CBPeripheral\cf4 ] = []\
+    \cf7 @Published\cf4  
+\f0\b \cf2 var
+\f1\b0 \cf4  \cf8 playedSound\cf4 : \cf7 String\cf4  = \cf9 ""\cf4 \
+    \cf7 @Published\cf4  
+\f0\b \cf2 var
+\f1\b0 \cf4  \cf8 isCalibrated\cf4  = 
+\f0\b \cf2 false
+\f1\b0 \cf4 \
+\
+    
+\f0\b \cf2 var
+\f1\b0 \cf4  \cf8 isFullyConnected\cf4 : \cf7 Bool\cf4  \{\
+        \cf10 connectedDevices\cf4 .\cf11 count\cf4  == \cf12 2\cf4 \
+    \}\
+\
+    
+\f0\b \cf2 private
+\f1\b0 \cf4  
+\f0\b \cf2 var
+\f1\b0 \cf4  \cf8 centralManager\cf4 : \cf6 CBCentralManager\cf4 !\
+    
+\f0\b \cf2 private
+\f1\b0 \cf4  
+\f0\b \cf2 var
+\f1\b0 \cf4  \cf8 targetCharacteristics\cf4 : [\cf6 CBPeripheral\cf4 : \cf6 CBCharacteristic\cf4 ] = [:]\
+    
+\f0\b \cf2 private
+\f1\b0 \cf4  
+\f0\b \cf2 var
+\f1\b0 \cf4  \cf8 calibrationStatus\cf4 : [\cf6 CBPeripheral\cf4 : \cf7 Bool\cf4 ] = [:]\
+    
+\f0\b \cf2 private
+\f1\b0 \cf4  
+\f0\b \cf2 var
+\f1\b0 \cf4  \cf8 audioPlayers\cf4 : [\cf7 String\cf4 : \cf6 AVAudioPlayer\cf4 ] = [:]\
+    
+\f0\b \cf2 private
+\f1\b0 \cf4  
+\f0\b \cf2 var
+\f1\b0 \cf4  \cf8 lastPlayedTime\cf4 : \cf7 TimeInterval\cf4  = \cf12 0\cf4 \
+\
+    
+\f0\b \cf2 override
+\f1\b0 \cf4  
+\f0\b \cf2 init
+\f1\b0 \cf4 () \{\
+        
+\f0\b \cf2 super
+\f1\b0 \cf4 .\cf13 init\cf4 ()\
+        \cf10 centralManager\cf4  = \cf6 CBCentralManager\cf4 (\cf13 delegate\cf4 : 
+\f0\b \cf2 self
+\f1\b0 \cf4 , \cf13 queue\cf4 : 
+\f0\b \cf2 nil
+\f1\b0 \cf4 )\
+        \cf14 preloadSounds\cf4 ()\
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 startScanning\cf4 () \{\
+        \cf10 discoveredDevices\cf4 .\cf13 removeAll\cf4 ()\
+\
+        
+\f0\b \cf2 if
+\f1\b0 \cf4  \cf10 centralManager\cf4 .\cf11 state\cf4  == .\cf11 poweredOn\cf4  \{\
+            \cf10 centralManager\cf4 .\cf13 scanForPeripherals\cf4 (\cf13 withServices\cf4 : [\cf6 CBUUID\cf4 (\cf13 string\cf4 : \cf9 "180D"\cf4 )], \cf13 options\cf4 : 
+\f0\b \cf2 nil
+\f1\b0 \cf4 )\
+        \}\
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 stopScanning\cf4 () \{\
+        \cf10 centralManager\cf4 .\cf13 stopScan\cf4 ()\
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 connectToDevice\cf4 (\cf8 _\cf4  device: \cf6 CBPeripheral\cf4 ) \{\
+        \cf14 stopScanning\cf4 ()\
+        
+\f0\b \cf2 if
+\f1\b0 \cf4  !\cf10 connectedDevices\cf4 .\cf13 contains\cf4 (device) \{\
+            device.\cf11 delegate\cf4  = 
+\f0\b \cf2 self
+\f1\b0 \cf4 \
+            \cf10 connectedDevices\cf4 .\cf13 append\cf4 (device)\
+            \cf10 centralManager\cf4 .\cf13 connect\cf4 (device, \cf13 options\cf4 : 
+\f0\b \cf2 nil
+\f1\b0 \cf4 )\
+        \}\
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 disconnectAll\cf4 () \{\
+        
+\f0\b \cf2 for
+\f1\b0 \cf4  device 
+\f0\b \cf2 in
+\f1\b0 \cf4  \cf10 connectedDevices\cf4  \{\
+            \cf10 centralManager\cf4 .\cf13 cancelPeripheralConnection\cf4 (device)\
+        \}\
+        \cf10 connectedDevices\cf4 .\cf13 removeAll\cf4 ()\
+        \cf10 targetCharacteristics\cf4 .\cf13 removeAll\cf4 ()\
+        \cf10 calibrationStatus\cf4 .\cf13 removeAll\cf4 ()\
+        \cf10 isCalibrated\cf4  = 
+\f0\b \cf2 false
+\f1\b0 \cf4 \
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 startCalibration\cf4 () \{\
+        \cf10 isCalibrated\cf4  = 
+\f0\b \cf2 false
+\f1\b0 \cf4 \
+        \cf10 calibrationStatus\cf4  = [:]\
+\
+        
+\f0\b \cf2 for
+\f1\b0 \cf4  device 
+\f0\b \cf2 in
+\f1\b0 \cf4  \cf10 connectedDevices\cf4  \{\
+            
+\f0\b \cf2 if
+\f1\b0 \cf4  
+\f0\b \cf2 let
+\f1\b0 \cf4  characteristic = \cf10 targetCharacteristics\cf4 [device] \{\
+                
+\f0\b \cf2 let
+\f1\b0 \cf4  command = \cf9 "startCalibrate"\cf4 .\cf13 data\cf4 (\cf13 using\cf4 : .\cf11 utf8\cf4 )!\
+                device.\cf13 writeValue\cf4 (command, \cf13 for\cf4 : characteristic, \cf13 type\cf4 : .\cf11 withResponse\cf4 )\
+            \}\
+        \}\
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 checkCalibrationComplete\cf4 () \{\
+        
+\f0\b \cf2 if
+\f1\b0 \cf4  \cf10 calibrationStatus\cf4 .\cf11 values\cf4 .\cf13 allSatisfy\cf4 (\{ $0 \}) \{\
+            DispatchQueue.\cf11 main\cf4 .\cf13 async\cf4  \{\
+                
+\f0\b \cf2 self
+\f1\b0 \cf4 .\cf10 isCalibrated\cf4  = 
+\f0\b \cf2 true
+\f1\b0 \cf4 \
+            \}\
+        \}\
+    \}\
+\
+    \cf15 // 
+\f0\b \cf16 MARK: - CBCentralManagerDelegate
+\f1\b0 \cf4 \
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 centralManagerDidUpdateState\cf4 (\cf8 _\cf4  central: \cf6 CBCentralManager\cf4 ) \{\
+        
+\f0\b \cf2 if
+\f1\b0 \cf4  central.\cf11 state\cf4  == .\cf11 poweredOn\cf4  \{\
+            \cf14 startScanning\cf4 ()\
+        \}\
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 centralManager\cf4 (\cf8 _\cf4  central: \cf6 CBCentralManager\cf4 , \cf8 didDiscover\cf4  peripheral: \cf6 CBPeripheral\cf4 , \cf8 advertisementData\cf4 : [\cf7 String\cf4 : 
+\f0\b \cf2 Any
+\f1\b0 \cf4 ], \cf8 rssi\cf4  RSSI: \cf6 NSNumber\cf4 ) \{\
+        
+\f0\b \cf2 if
+\f1\b0 \cf4  !\cf10 discoveredDevices\cf4 .\cf13 contains\cf4 (\cf13 where\cf4 : \{ $0.\cf11 identifier\cf4  == peripheral.\cf11 identifier\cf4  \}) \{\
+            \cf10 discoveredDevices\cf4 .\cf13 append\cf4 (peripheral)\
+        \}\
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 centralManager\cf4 (\cf8 _\cf4  central: \cf6 CBCentralManager\cf4 , \cf8 didConnect\cf4  peripheral: \cf6 CBPeripheral\cf4 ) \{\
+        peripheral.\cf13 discoverServices\cf4 ([\cf6 CBUUID\cf4 (\cf13 string\cf4 : \cf9 "180D"\cf4 )])\
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 centralManager\cf4 (\cf8 _\cf4  central: \cf6 CBCentralManager\cf4 , \cf8 didDisconnectPeripheral\cf4  peripheral: \cf6 CBPeripheral\cf4 , \cf8 error\cf4 : \cf7 Error\cf4 ?) \{\
+        \cf10 connectedDevices\cf4 .\cf13 removeAll\cf4  \{ $0.\cf11 identifier\cf4  == peripheral.\cf11 identifier\cf4  \}\
+        \cf10 targetCharacteristics\cf4 .\cf13 removeValue\cf4 (\cf13 forKey\cf4 : peripheral)\
+        \cf10 calibrationStatus\cf4 .\cf13 removeValue\cf4 (\cf13 forKey\cf4 : peripheral)\
+        \cf10 isCalibrated\cf4  = 
+\f0\b \cf2 false
+\f1\b0 \cf4 \
+        \cf14 startScanning\cf4 ()\
+    \}\
+\
+    \cf15 // 
+\f0\b \cf16 MARK: - CBPeripheralDelegate
+\f1\b0 \cf4 \
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 peripheral\cf4 (\cf8 _\cf4  peripheral: \cf6 CBPeripheral\cf4 , \cf8 didDiscoverServices\cf4  error: \cf7 Error\cf4 ?) \{\
+        
+\f0\b \cf2 for
+\f1\b0 \cf4  service 
+\f0\b \cf2 in
+\f1\b0 \cf4  peripheral.\cf11 services\cf4  ?? [] \{\
+            peripheral.\cf13 discoverCharacteristics\cf4 ([\cf6 CBUUID\cf4 (\cf13 string\cf4 : \cf9 "2A5A"\cf4 )], \cf13 for\cf4 : service)\
+        \}\
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 peripheral\cf4 (\cf8 _\cf4  peripheral: \cf6 CBPeripheral\cf4 , \cf8 didDiscoverCharacteristicsFor\cf4  service: \cf6 CBService\cf4 , \cf8 error\cf4 : \cf7 Error\cf4 ?) \{\
+        
+\f0\b \cf2 for
+\f1\b0 \cf4  characteristic 
+\f0\b \cf2 in
+\f1\b0 \cf4  service.\cf11 characteristics\cf4  ?? [] \{\
+            \cf10 targetCharacteristics\cf4 [peripheral] = characteristic\
+            peripheral.\cf13 setNotifyValue\cf4 (
+\f0\b \cf2 true
+\f1\b0 \cf4 , \cf13 for\cf4 : characteristic)\
+        \}\
+    \}\
+\
+    
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 peripheral\cf4 (\cf8 _\cf4  peripheral: \cf6 CBPeripheral\cf4 , \cf8 didUpdateValueFor\cf4  characteristic: \cf6 CBCharacteristic\cf4 , \cf8 error\cf4 : \cf7 Error\cf4 ?) \{\
+        
+\f0\b \cf2 guard
+\f1\b0 \cf4  
+\f0\b \cf2 let
+\f1\b0 \cf4  data = characteristic.\cf11 value\cf4 ,\
+              
+\f0\b \cf2 let
+\f1\b0 \cf4  message = \cf7 String\cf4 (\cf13 data\cf4 : data, \cf13 encoding\cf4 : .\cf11 utf8\cf4 ) 
+\f0\b \cf2 else
+\f1\b0 \cf4  \{ 
+\f0\b \cf2 return
+\f1\b0 \cf4  \}\
+        \cf14 handleReceivedMessage\cf4 (\cf14 from\cf4 : peripheral, \cf14 message\cf4 : message)\
+    \}\
+\
+    
+\f0\b \cf2 private
+\f1\b0 \cf4  
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 handleReceivedMessage\cf4 (\cf8 from\cf4  peripheral: \cf6 CBPeripheral\cf4 , \cf8 message\cf4 : \cf7 String\cf4 ) \{\
+        
+\f0\b \cf2 if
+\f1\b0 \cf4  message == \cf9 "calibrationDone"\cf4  \{\
+            \cf10 calibrationStatus\cf4 [peripheral] = 
+\f0\b \cf2 true
+\f1\b0 \cf4 \
+            \cf14 checkCalibrationComplete\cf4 ()\
+        \} 
+\f0\b \cf2 else
+\f1\b0 \cf4  
+\f0\b \cf2 if
+\f1\b0 \cf4  \cf10 isCalibrated\cf4  \{\
+            DispatchQueue.\cf11 main\cf4 .\cf13 async\cf4  \{\
+                
+\f0\b \cf2 self
+\f1\b0 \cf4 .\cf10 playedSound\cf4  = message\
+            \}\
+            \cf14 playSound\cf4 (\cf14 named\cf4 : message)\
+        \}\
+    \}\
+\
+    
+\f0\b \cf2 private
+\f1\b0 \cf4  
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 playSound\cf4 (\cf8 named\cf4  soundFile: \cf7 String\cf4 ) \{\
+        
+\f0\b \cf2 let
+\f1\b0 \cf4  now = \cf7 Date\cf4 ().\cf11 timeIntervalSince1970\cf4 \
+        
+\f0\b \cf2 if
+\f1\b0 \cf4  now - \cf10 lastPlayedTime\cf4  < \cf12 0.05\cf4  \{ 
+\f0\b \cf2 return
+\f1\b0 \cf4  \}\
+        \cf10 lastPlayedTime\cf4  = now\
+\
+        
+\f0\b \cf2 if
+\f1\b0 \cf4  
+\f0\b \cf2 let
+\f1\b0 \cf4  player = \cf10 audioPlayers\cf4 [soundFile] \{\
+            player.\cf11 currentTime\cf4  = \cf12 0\cf4 \
+            player.play()\
+        \}\
+    \}\
+\
+    
+\f0\b \cf2 private
+\f1\b0 \cf4  
+\f0\b \cf2 func
+\f1\b0 \cf4  \cf8 preloadSounds\cf4 () \{\
+        
+\f0\b \cf2 let
+\f1\b0 \cf4  soundNames = [\cf9 "sdrum"\cf4 , \cf9 "kdrum"\cf4 , \cf9 "cdrum"\cf4 , \cf9 "pdrum"\cf4 ]\
+        
+\f0\b \cf2 for
+\f1\b0 \cf4  soundName 
+\f0\b \cf2 in
+\f1\b0 \cf4  soundNames \{\
+            
+\f0\b \cf2 if
+\f1\b0 \cf4  
+\f0\b \cf2 let
+\f1\b0 \cf4  url = \cf6 Bundle\cf4 .\cf11 main\cf4 .\cf13 url\cf4 (\cf13 forResource\cf4 : soundName, \cf13 withExtension\cf4 : \cf9 "mp3"\cf4 ) \{\
+                
+\f0\b \cf2 let
+\f1\b0 \cf4  player = 
+\f0\b \cf2 try
+\f1\b0 \cf4 ? \cf6 AVAudioPlayer\cf4 (\cf13 contentsOf\cf4 : url)\
+                player?.\cf13 prepareToPlay\cf4 ()\
+                \cf10 audioPlayers\cf4 [soundName] = player\
+            \}\
+        \}\
+    \}\
+\}\
+}

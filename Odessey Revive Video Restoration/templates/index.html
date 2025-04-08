@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4K Video Restoration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #f8f9fc;
+            --accent-color: #2e59d9;
+            --text-color: #5a5c69;
+            --light-gray: #eaecf4;
+            --dark-gray: #d1d3e2;
+        }
+        
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--dark-gray);
+            border-radius: 0.35rem;
+            transition: all 0.3s;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+        
+        .progress-container {
+            background-color: white;
+            border-radius: 0.35rem;
+            padding: 1.5rem;
+        }
+        
+        .progress {
+            height: 1rem;
+            border-radius: 0.35rem;
+        }
+        
+        .progress-bar {
+            background-color: var(--primary-color);
+        }
+        
+        .video-container {
+            background-color: black;
+            border-radius: 0.35rem;
+            overflow: hidden;
+        }
+        
+        .metrics-card {
+            background-color: white;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .comparison-container {
+            gap: 1rem;
+        }
+        
+        .video-wrapper {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .quality-indicator {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #e74a3b, #f6c23e, #1cc88a);
+            position: relative;
+        }
+        
+        .quality-marker {
+            position: absolute;
+            width: 2px;
+            height: 15px;
+            background-color: black;
+            top: -2.5px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .section-title {
+            font-weight: 600;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--light-gray);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <h1 class="h3 mb-4 text-gray-800">
+                            <i class="bi bi-magic"></i> 4K Video Restoration
+                        </h1>
+                        <p class="mb-4">Upload your video to enhance it with AI-powered super resolution, colorization, and quality improvement</p>
+                        
+                        <div class="upload-area py-5 mb-4" id="uploadArea">
+                            <i class="bi bi-cloud-arrow-up-fill display-4 text-primary mb-3"></i>
+                            <h5>Drag & Drop Video File Here</h5>
+                            <p class="text-muted small">or click to browse (MP4, AVI, MOV up to 500MB)</p>
+                            <input type="file" id="fileInput" accept="video/*">
+                        </div>
+                        
+                        <div class="alert alert-info small">
+                            <i class="bi bi-info-circle-fill"></i> Processing may take several minutes depending on video length and your hardware.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-container card mb-4" id="progressContainer" style="display: none;">
+                    <h5 class="section-title">
+                        <i class="bi bi-graph-up"></i> Processing Progress
+                    </h5>
+                    <div class="progress mb-3">
+                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small id="progressMessage" class="text-muted">Initializing...</small>
+                        <small id="progressPercent">0%</small>
+                    </div>
+                </div>
+                
+                <div class="metrics-card card mb-4" id="metricsCard" style="display: none;">
+                    <h5 class="section-title">
+                        <i class="bi bi-speedometer2"></i> Quality Metrics
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-uppercase text-muted">Average PSNR</h6>
+                                    <div class="d-flex align-items-center">
+                                        <div class="metric-value mr-3" id="psnrValue">-</div>
+                                        <div>dB</div>
+                                    </div>
+                                    <div class="quality-indicator mt-2">
+                                        <div class="quality-marker" style="left: 20%;"></div>
+                                        <div class="quality-marker" style="left: 50%;"></div>
+                                        <div class="quality-marker" style="left: 80%;"></div>
+                                    </div>
+                                    <small class="text-muted">Higher is better (typically 30-50 dB for good quality)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-uppercase text-muted">Average SSIM</h6>
+                                    <div class="metric-value" id="ssimValue">-</div>
+                                    <div class="quality-indicator mt-2">
+                                        <div class="quality-marker" style="left: 50%;"></div>
+                                        <div class="quality-marker" style="left: 90%;"></div>
+                                    </div>
+                                    <small class="text-muted">1.0 means identical to original (0.95+ is excellent)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title text-uppercase text-muted">Processing Summary</h6>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <small class="text-muted">Frames Processed</small>
+                                            <div class="h5" id="frameCount">-</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <small class="text-muted">Resolution</small>
+                                            <div class="h5" id="resolutionInfo">HD</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <small class="text-muted">Processing Time</small>
+                                            <div class="h5" id="processingTime">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4" id="videoComparison" style="display: none;">
+                    <h5 class="section-title">
+                        <i class="bi bi-collection-play"></i> Video Comparison
+                    </h5>
+                    <div class="comparison-container d-flex mb-4">
+                        <div class="video-wrapper">
+                            <h6 class="text-center mb-3">
+                                <i class="bi bi-file-earmark-play"></i> Original Video
+                            </h6>
+                            <div class="video-container">
+                                <video id="originalVideo" controls width="100%"></video>
+                            </div>
+                        </div>
+                        <div class="video-wrapper">
+                            <h6 class="text-center mb-3">
+                                <i class="bi bi-stars"></i> Enhanced Video
+                            </h6>
+                            <div class="video-container">
+                                <video id="processedVideo" controls width="100%"></video>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center" id="downloadSection">
+                        <button id="downloadBtn" class="btn btn-primary btn-lg">
+                            <i class="bi bi-download"></i> Download Enhanced Video
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card" id="processingOptions">
+                    <h5 class="section-title">
+                        <i class="bi bi-gear"></i> Processing Options
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="superResSwitch" checked>
+                                <label class="form-check-label" for="superResSwitch">Super Resolution (4K upscaling)</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="colorizationSwitch" checked>
+                                <label class="form-check-label" for="colorizationSwitch">Colorization</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="faceEnhanceSwitch" checked>
+                                <label class="form-check-label" for="faceEnhanceSwitch">Face Enhancement</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="deblurSwitch" checked>
+                                <label class="form-check-label" for="deblurSwitch">Motion Deblurring</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="colorCorrectSwitch" checked>
+                                <label class="form-check-label" for="colorCorrectSwitch">Color Correction</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="temporalSwitch" checked>
+                                <label class="form-check-label" for="temporalSwitch">Temporal Filtering</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // DOM Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressMessage = document.getElementById('progressMessage');
+        const progressPercent = document.getElementById('progressPercent');
+        const metricsCard = document.getElementById('metricsCard');
+        const psnrValue = document.getElementById('psnrValue');
+        const ssimValue = document.getElementById('ssimValue');
+        const frameCount = document.getElementById('frameCount');
+        const resolutionInfo = document.getElementById('resolutionInfo');
+        const processingTime = document.getElementById('processingTime');
+        const videoComparison = document.getElementById('videoComparison');
+        const originalVideo = document.getElementById('originalVideo');
+        const processedVideo = document.getElementById('processedVideo');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const processingOptions = document.getElementById('processingOptions');
+        
+        // Processing start time
+        let processingStartTime = null;
+        let currentFilename = null;
+        
+        // Handle file selection
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validate file size (max 500MB)
+            if (file.size > 500 * 1024 * 1024) {
+                showAlert('File size exceeds 500MB limit', 'danger');
+                return;
+            }
+            
+            // Show processing UI
+            uploadArea.style.display = 'none';
+            progressContainer.style.display = 'block';
+            
+            // Reset metrics
+            resetMetrics();
+            
+            // Store filename
+            currentFilename = file.name;
+            
+            // Start processing timer
+            processingStartTime = new Date();
+            
+            // Create FormData and append processing options
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('super_resolution', document.getElementById('superResSwitch').checked ? '1' : '0');
+            formData.append('colorization', document.getElementById('colorizationSwitch').checked ? '1' : '0');
+            formData.append('face_enhancement', document.getElementById('faceEnhanceSwitch').checked ? '1' : '0');
+            formData.append('deblurring', document.getElementById('deblurSwitch').checked ? '1' : '0');
+            formData.append('color_correction', document.getElementById('colorCorrectSwitch').checked ? '1' : '0');
+            formData.append('temporal_filtering', document.getElementById('temporalSwitch').checked ? '1' : '0');
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+                
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // Start polling for progress
+                pollProgress();
+                
+            } catch (error) {
+                updateProgress(-1, `Error: ${error.message}`);
+                progressBar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+                progressBar.classList.add('bg-danger');
+            }
+        });
+
+        // Drag and drop support
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--primary-color)';
+            uploadArea.style.backgroundColor = 'rgba(78, 115, 223, 0.1)';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = 'var(--dark-gray)';
+            uploadArea.style.backgroundColor = 'white';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--dark-gray)';
+            uploadArea.style.backgroundColor = 'white';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Poll server for progress updates
+        function pollProgress() {
+            fetch('/progress')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to get progress');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update progress
+                    updateProgress(data.progress, data.message);
+                    
+                    if (data.metrics) {
+                        // Show metrics
+                        showMetrics(data.metrics);
+                        
+                        // Show videos
+                        if (data.processed_video) {
+                            showComparison(data.original_video, data.processed_video);
+                        }
+                    }
+                    
+                    if (data.is_processing) {
+                        // Continue polling
+                        setTimeout(pollProgress, 1000);
+                    } else if (data.progress === 100) {
+                        // Processing complete
+                        progressBar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+                    } else if (data.error) {
+                        progressBar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+                        progressBar.classList.add('bg-danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Progress polling error:', error);
+                    updateProgress(-1, `Error checking progress: ${error.message}`);
+                    setTimeout(pollProgress, 2000);
+                });
+        }
+        
+        function updateProgress(progress, message) {
+            if (progress >= 0) {
+                progressBar.style.width = `${progress}%`;
+                progressPercent.textContent = `${progress}%`;
+            }
+            progressMessage.textContent = message;
+            
+            // Update processing time if available
+            if (processingStartTime) {
+                const seconds = Math.floor((new Date() - processingStartTime) / 1000);
+                processingTime.textContent = formatTime(seconds);
+            }
+        }
+        
+        function resetMetrics() {
+            psnrValue.textContent = '-';
+            ssimValue.textContent = '-';
+            frameCount.textContent = '-';
+            processingTime.textContent = '-';
+            resolutionInfo.textContent = document.getElementById('superResSwitch').checked ? '4K' : 'HD';
+        }
+        
+        function showMetrics(metrics) {
+            metricsCard.style.display = 'block';
+            
+            if (metrics.avg_psnr) {
+                psnrValue.textContent = metrics.avg_psnr.toFixed(2);
+            }
+            
+            if (metrics.avg_ssim) {
+                ssimValue.textContent = metrics.avg_ssim.toFixed(3);
+            }
+            
+            if (metrics.total_frames) {
+                frameCount.textContent = metrics.total_frames;
+            }
+        }
+        
+        function showComparison(originalPath, processedPath) {
+            videoComparison.style.display = 'block';
+            
+            // Load videos
+            originalVideo.src = `/video/${encodeURIComponent(originalPath)}`;
+            processedVideo.src = `/processed_video/${encodeURIComponent(processedPath)}`;
+            
+            // Set up download button
+            downloadBtn.onclick = () => {
+                window.location.href = `/download/${encodeURIComponent(processedPath)}`;
+            };
+        }
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}m ${secs}s`;
+        }
+        
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.querySelector('.container');
+            container.prepend(alert);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        }
+        
+        // Initialize processing options toggles
+        document.querySelectorAll('.form-check-input').forEach(toggle => {
+            toggle.addEventListener('change', (e) => {
+                // Update resolution display when super resolution is toggled
+                if (e.target.id === 'superResSwitch') {
+                    resolutionInfo.textContent = e.target.checked ? '4K' : 'HD';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

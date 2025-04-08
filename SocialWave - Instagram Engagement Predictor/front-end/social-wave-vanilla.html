@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialWave</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(to bottom right, #f3f4f6, #ffffff);
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        nav {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 50;
+        }
+
+        .nav-container {
+            max-width: 1152px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(to right, #9333ea, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 32rem;
+            margin: 0 1rem;
+            position: relative;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 0.5rem 2.5rem;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 0.5rem;
+            outline: none;
+        }
+
+        .search-container .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .auth-buttons button {
+            padding: 0.5rem 1rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        .login-btn {
+        color: #9333ea;
+        background: none;
+        border: 2px solid #9333ea;
+        border-radius: 0.5rem;
+        transition: background-color 0.3s, color 0.3s;
+        }
+
+        .login-btn:hover {
+            background-color: #9333ea;
+            color: white;
+        }
+
+        .signup-btn {
+        background: linear-gradient(to right, #9333ea, #ec4899);
+        color: white;
+        border-radius: 0.5rem;
+        transition: background-color 0.3s, color 0.3s;
+        }
+
+        .signup-btn:hover {
+            background: white;
+            color: #9333ea;
+        }
+
+        .get-started-btn {
+        background: linear-gradient(to right, #9333ea, #ec4899);
+        color: white;
+        border: 2px solid #9333ea;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+        }
+
+        .get-started-btn:hover {
+            background: white;
+            color: #9333ea;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1152px;
+            margin: 5rem auto 0;
+            padding: 0 1rem;
+        }
+
+        .banner {
+            background: linear-gradient(to right, #9333ea, #ec4899, #f97316);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .banner h1 {
+            font-size: 1.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Grid Layout */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .grid-item {
+            aspect-ratio: 1;
+            position: relative;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .grid-background {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.75rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .hover-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .grid-item:hover .hover-overlay {
+            opacity: 1;
+        }
+
+        .engagement-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .prediction-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(147, 51, 234, 0.5);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(to right, #9333ea, #ec4899);
+            color: white;
+            padding: 1rem;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s;
+        }
+
+        .fab:hover {
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">SocialWave</div>
+            
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Search predictions...">
+            </div>
+    
+            <div class="auth-buttons">
+                <button class="get-started-btn" onclick="window.location.href='loginpage.html'">Get started!</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="banner">
+            <h1>Ride with the wave of the social world today!</h1>
+            <p>Let our AI help you surf through the trends and make your content shine</p>
+        </div>
+
+        <div class="grid-container" id="postGrid"></div>
+    </main>
+
+    <button class="fab">📸</button>
+
+    <script>
+        const posts = [
+        { imageUrl: 'images/S.jpg' },
+        { imageUrl: 'images/O.jpg' },
+        { imageUrl: 'images/C.jpg' },
+        { imageUrl: 'images/I.jpg' },
+        { imageUrl: 'images/A.jpg' },
+        { imageUrl: 'images/L.jpg' },
+        { imageUrl: 'images/W.jpg' },
+        { imageUrl: 'images/A1.jpg' },
+        { imageUrl: 'images/V.jpg' },
+        { imageUrl: 'images/E.jpg' }
+        ];
+
+        function createPostElement(post) {
+            const likes = Math.floor(Math.random() * 10000) + 1000;
+            const comments = Math.floor(Math.random() * 1000) + 100;
+            const engagement = (Math.random() * 5 + 2).toFixed(1);
+
+            const postElement = document.createElement('div');
+            postElement.className = 'grid-item';
+            postElement.innerHTML = `
+                <div class="grid-background">
+                    <img src="${post.imageUrl}" alt="Post Image" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div class="hover-overlay">
+                    <div class="engagement-stats">
+                        <div class="stat">
+                            <span>❤️</span>
+                            <span>${likes.toLocaleString()}</span>
+                        </div>
+                        <div class="stat">
+                            <span>💬</span>
+                            <span>${comments.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div class="prediction-badge">
+                        <span>📈</span>
+                        <span>${engagement}% Predicted Engagement</span>
+                    </div>
+                </div>
+            `;
+
+            return postElement;
+        }
+
+        function initializeGrid() {
+            const grid = document.getElementById('postGrid');
+            posts.forEach(post => {
+                grid.appendChild(createPostElement(post));
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeGrid);
+    </script>
+</body>
+</html>
